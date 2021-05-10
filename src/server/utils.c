@@ -1,9 +1,5 @@
 #include "utils.h"
 
-void dummy(void) {
-    return;
-}
-
 // void Pthread_mtx_lock(pthread_mutex_t* mtx) {
 //     int err;
 //     if((err = pthread_mutex_lock(mtx)) != 0) {

@@ -4,7 +4,6 @@
 #ifndef __storage_h
 #define __storage_h
 
-// int createFile(size_t, char*, unsigned char*);
 
 typedef struct _storage {
     struct _storage_node *head; // Pointer to the head of the list
@@ -22,6 +21,15 @@ typedef struct _storage_node {
     size_t size;                // Size of `data`
     pthread_mutex_t mutex;      // Mutex user do block certain operations for multithread concurrency
 } StorageNode_t;
+
+typedef struct _opened_file {
+    struct _storage_node *node;
+    struct _opened_file *next;
+} OpenedFile_t;
+
+typedef struct _opened_files {
+    struct _opened_file *head;
+} OpenedFiles_t;
 
 Storage_t *initStorage();
 Storage_t *pushFile(Storage_t *, char *, size_t, unsigned char *);

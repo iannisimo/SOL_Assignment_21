@@ -1,12 +1,12 @@
 CC		      =  gcc
-CFLAGS	      += -Wall -pedantic -std=c99
+CFLAGS	      += -Wall -pedantic -std=gnu11
 TARGETS	      = users matrix wc 
 OPTFLAGS	  = -g -O3 
 LIBS		  = -lpthread
 
 BIN           = server
 
-OBJECTS      := storage.o test.o
+OBJECTS      := connection.o test.o
 
 .PHONY: clean all
 .SUFFIXES: .c .h

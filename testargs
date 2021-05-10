@@ -1,0 +1,8 @@
+./client -f -r a -t 10 -r b -d . -r c -t 20 -W pippo 7 -p
+
+getopt(argc, argv, "p")
+
+-p -r a -r b -d . -r c -W pippo
+
+getopt(argc, argv, "r:R:w:W:c:t:")
+getopt(argc, argv, "d:")

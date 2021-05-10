@@ -1,14 +1,21 @@
 #include <errno.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include "const.h"
 
 
 #ifndef __utils_h
 #define __utils_h
 
-#define RET_ON(f, e) \
+#define RET_ON(f, e, r) \
     if (f == e) \
-        return e
+        return r
+
+#define RET_NO(f, e) { \
+    int __err; \
+    if ((__err = f) != e) { \
+        return __err; \
+    }}
 
 #define EXT_ON(f, e) \
     if (f == e) { \
@@ -17,9 +24,9 @@
         exit(errno); \
     }
 
-#define RET_MALLOC(p, t) \
+#define RET_MALLOC(p, t, r) \
     if ((p = malloc(sizeof(t))) == NULL) \
-        return NULL
+        return r
 
 #define EXT_MALLOC(p, t) \
     if ((p = malloc(sizeof(t))) == NULL) { \
@@ -41,6 +48,13 @@
         perror(#f); \
         exit(errno); \
     }}
+
+#define IS_CREATE(f) \
+    (f & O_CREATE)
+
+#define IS_LOCK(f) \
+    ((f & O_LOCK) >> 1)
+
 
 #endif
 
