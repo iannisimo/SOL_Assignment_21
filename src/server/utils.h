@@ -7,9 +7,17 @@
 #ifndef __utils_h
 #define __utils_h
 
+#define CNT_ON(f, e) \
+    if (f == e) \
+        continue;
+
+#define CNT_NO(f, e) \
+    if (f != e) \
+        continue;
+
 #define RET_ON(f, e, r) \
     if (f == e) \
-        return r
+        return r;
 
 #define RET_NO(f, e) { \
     int __err; \
@@ -23,6 +31,14 @@
         perror(#f); \
         exit(errno); \
     }
+
+#define EXT_NO(f, e)  { \
+    int __err; \
+    if ((__err = f) != e) { \
+        errno = (errno == 0) ? -1 : errno; \
+        perror(#f); \
+        exit(errno); \
+    }}
 
 #define RET_MALLOC(p, t, r) \
     if ((p = malloc(sizeof(t))) == NULL) \
@@ -46,8 +62,15 @@
     if((err = f) != 0) { \
         errno = err; \
         perror(#f); \
-        exit(errno); \
+        pthread_exit(&errno); \
     }}
+
+#define EXT_ON_PT(f, e) { \
+    if(f == e) { \
+        perror(#f); \
+        pthread_exit(&errno); \
+    } \
+}
 
 #define IS_CREATE(f) \
     (f & O_CREATE)
@@ -55,6 +78,17 @@
 #define IS_LOCK(f) \
     ((f & O_LOCK) >> 1)
 
+typedef struct _close_conditions {
+    volatile char closeAll;
+    volatile char acceptConns;
+} closeConditions_t;
+
+int getInt(char* str, int* val);
+int getLong(char* str, long* val);
+int getLLong(char* str, long long* val);
+int getSz(char* str, size_t* val);
+
+int readUntil(int fd, char* buf, int len, char delim);
 
 #endif
 

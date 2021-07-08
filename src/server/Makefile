@@ -6,7 +6,7 @@ LIBS		  = -lpthread
 
 BIN           = server
 
-OBJECTS      := connection.o test.o
+OBJECTS      := server.o utils.o config.o worker.o queue.o storage.o connection.o
 
 .PHONY: clean all
 .SUFFIXES: .c .h
