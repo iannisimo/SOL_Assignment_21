@@ -25,6 +25,7 @@ int sig_loop(sigset_t sig_mask, int exit_pipe, Queue_t *queue, closeConditions_t
     int sig;
     while(1) {
         RET_PT(sigwait(&sig_mask, &sig), -1);
+        printf("Received signal %s(%d)\n", strsignal(sig), sig);
         if(sig == SIGINT || sig == SIGQUIT) {
             cc->closeAll = 1;
             RET_ON(close(exit_pipe), -1, -1);
@@ -47,7 +48,11 @@ int main(int argc, char **argv) {
     RET_NO(parseConfig(argv[1], &config), 0);
     parseConfig(argv[1], &config);
 
+    // EXT_ON(unlink(config.sockname), -1);
+
     closeConditions_t cc = {.acceptConns = 1, .closeAll = 0};
+
+    printf("Starting setup sequence\n");
 
     sigset_t sig_mask;
     sigemptyset(&sig_mask);
@@ -62,6 +67,8 @@ int main(int argc, char **argv) {
     s.sa_handler=SIG_IGN;
     RET_ON((sigaction(SIGPIPE,&s,NULL)), -1, -1);
 
+    printf("Masked signals\n");
+
     Storage_t *storage;
     EXT_ON((storage = initStorage(config.max_files, config.max_size)), NULL);
 
@@ -74,6 +81,8 @@ int main(int argc, char **argv) {
     RET_ON((fdq = init_queue()), NULL, -1);
     WArgs_t wargs = {.fd_pipe = fd_pipes[1], .queue = fdq, .storage = storage, .cc = &cc};
     MArgs_t margs = {.fd_pipe = fd_pipes[0], .queue = fdq, .sockname = config.sockname, .exit_pipe = exit_pipes[0], .cc = &cc};
+
+    printf("Spawning threads\n");
 
     pthread_t *worker_tids;
     RET_ON((worker_tids = malloc(config.n_workers * sizeof(pthread_t))), NULL, ENOMEM); //Should somehow free this
@@ -92,6 +101,7 @@ int main(int argc, char **argv) {
     for(int i = 0; i < config.n_workers; i++) {
         EXT_PT(pthread_join((worker_tids[i]), NULL));
     }
+    printSummary(storage);
     free(worker_tids);
     RET_ON(qFree(fdq), -1, -1);
     RET_ON(StorageDestroy(storage), -1, -1);

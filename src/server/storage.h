@@ -14,6 +14,12 @@
         return r; \
     }
 
+typedef struct _storage_summary {
+    size_t max_size;
+    size_t max_len;
+    size_t deleted;
+} StorageSummary_t;
+
 typedef struct _storage {
     struct _storage_node *head; // Pointer to the head of the list
     struct _storage_node *tail; // Pointer to the tail of the list
@@ -27,6 +33,7 @@ typedef struct _storage {
     pthread_cond_t write_cond;
     size_t readers;
     size_t writers;
+    struct _storage_summary summary;
     char writing;
 } Storage_t;
 
@@ -42,6 +49,7 @@ typedef struct _storage_node {
 
 Storage_t *initStorage(size_t max_len, size_t max_size);
 int StorageDestroy(Storage_t *storage);
+void printSummary(Storage_t *storage);
 int openFile(Storage_t *storage, int fd, char create, char* filename);
 int closeFile(Storage_t *storage, int fd, char* filename);
 Storage_t *pushFile(Storage_t *, char *, size_t, void *);

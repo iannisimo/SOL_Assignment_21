@@ -10,6 +10,8 @@
 
 void *runMaster(void *args) {
 
+    printf("Dispatcher thread started\n");
+
     MArgs_t *ma = (MArgs_t*) args;
 
     int sfd;

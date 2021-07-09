@@ -92,6 +92,9 @@ int execute(int fd, Storage_t *storage) {
 }
 
 void *runWorker(void *args) {
+    
+    printf("Started a worker thread\n");
+    
     WArgs_t *wa = (WArgs_t*) args;
     while(1) {
         int fd;

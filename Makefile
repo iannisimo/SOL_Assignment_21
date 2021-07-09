@@ -1,7 +1,7 @@
 SERVER = src/server
 CLIENT = src/client
 
-.PHONY: clean server client all
+.PHONY: test1 clean server client all
 .SUFFIXES: .c .h
 
 all: server client
@@ -12,7 +12,17 @@ server:
 client:
 	+$(MAKE) -C $(CLIENT)
 
-clean : 
+clean: 
 	@echo I am cleaning all your mess... maybe
 	+$(MAKE) clean -C $(SERVER)
 	+$(MAKE) clean -C $(CLIENT)
+
+test1:
+	@rm -rf tests/output/*
+	@echo Executing test1
+	@valgrind --leak-check=full ./src/server/server ./tests/test1.conf > tests/output/valgrind.log 2>&1 & echo "$$!" > tests/output/server.PID
+	@sleep 5
+	@bash tests/test1.sh
+	@kill -s 1 `cat tests/output/server.PID`
+
+

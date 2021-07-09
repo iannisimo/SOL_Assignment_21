@@ -1,7 +1,0 @@
-N_WORKERS:   2
-MAX_SIZE:    10M
-MAX_FILES:   10
-SOCKET_NAME: /tmp/aaa
-
-
-

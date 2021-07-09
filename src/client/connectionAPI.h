@@ -15,7 +15,11 @@
 
 #define API_ERR(f, e, err) \
     if (f == e) { \
-        if (err != -1) errno = err; \
+        if (err != -1) { \
+            errno = err; \
+        } else { \
+            printf("%s:%d\t%s\n\t%s(%d)\n", __FILE__, __LINE__, #f, strerror(errno), errno); \
+        } \
         return -1; \
     }
 

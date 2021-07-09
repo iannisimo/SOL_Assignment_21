@@ -92,6 +92,9 @@ Storage_t *initStorage(size_t max_len, size_t max_size) {
     storage->writing = 0;
     storage->max_length = max_len;
     storage->max_size = max_size;
+    storage->summary.max_size = 0;
+    storage->summary.max_len = 0;
+    storage->summary.deleted = 0;
     return storage;
 }
 
@@ -130,6 +133,7 @@ int removeOverflow(Storage_t* storage) {
     if((storage->length <= storage->max_length) && (storage->size <= storage->max_size)) return 0;
     StorageNode_t *node = storage->head;
     RET_ON(node, NULL, -1);
+    storage->summary.deleted += 1;
     storage->size -= node->size;
     storage->length -= 1;
     if(storage->size < 0) storage->size = 0;
@@ -150,16 +154,17 @@ int removeOverflow(Storage_t* storage) {
  */
 int appendToFile(Storage_t *storage, int fd, char *filename, size_t size, void *data) {
     RET_ON(storage, NULL, -1);
-    StorageNode_t *node;;
+    StorageNode_t *node;
     RET_ON((node = findFile(storage, filename)), NULL, ENOENT);    
     RET_PT(pthread_mutex_lock(&node->mutex), -1);
     int found;
+    void *tmpPointer;
     EXEC_RET_ON(RET_PT(pthread_mutex_unlock(&node->mutex), -1), (found = qFind(node->clients, fd)), -1, -1);
     EXEC_RET_ON(RET_PT(pthread_mutex_unlock(&node->mutex), -1), found, 0, EACCES);
-    EXEC_RET_ON(RET_PT(pthread_mutex_unlock(&node->mutex), -1), (node->data = realloc(node->data, node->size + size)), NULL, -1);
+    EXEC_RET_ON(RET_PT(pthread_mutex_unlock(&node->mutex), -1), (tmpPointer = realloc(node->data, node->size + size)), NULL, -1);
+    node->data = tmpPointer;
     void* ptr = (void*)(((char*) node->data) + node->size);
     memcpy(ptr, data, size);
-    // printf("after append\n\t%s\n", (char*) node->data);
     node->size += size;
     RET_PT(pthread_mutex_unlock(&node->mutex), -1);
 
@@ -168,6 +173,8 @@ int appendToFile(Storage_t *storage, int fd, char *filename, size_t size, void *
     storage->size += size;
 
     RET_ON(removeOverflow(storage), -1, -1);
+
+    if(storage->size > storage->summary.max_size) storage->summary.max_size = storage->size; 
 
     RET_ON(end_write(storage), -1, -1);
     return 0;   
@@ -195,6 +202,8 @@ int openFile(Storage_t *storage, int fd, char create, char* filename) {
         storage->length += 1;
     
         RET_ON(removeOverflow(storage), -1, -1);
+
+        if(storage->length > storage->summary.max_len) storage->summary.max_len = storage->length;
 
         RET_ON(end_write(storage), -1, -1);
     } else {
@@ -281,6 +290,23 @@ int StorageDestroy(Storage_t *storage) {
     RET_PT(pthread_cond_destroy(&storage->write_cond), -1);
     free(storage);
     return 0;
+}
+
+void printSummary(Storage_t *storage) {
+    printf("The maximum number of files saved on the server was:\n\t%zu file%s\n", storage->summary.max_len, storage->summary.max_len == 1 ? "" : "s");
+    printf("The maximum size occupied on the server was:\n\t%zu Byte%s\n", storage->summary.max_size, storage->summary.max_size == 1 ? "" : "s");
+    printf("The cleanup algorithm has removed:\n\t%zu file%s\n", storage->summary.deleted, storage->summary.deleted == 1 ? "" : "s");
+    printf("List of all files saved on the server at the end:\n");
+    StorageNode_t *node = storage->head;
+    while(node != NULL) {
+        if(node->filename != NULL) {
+            printf("%s\n", node->filename);
+        }
+        node = node->next;
+    }
+    if(node == storage->head->next) {
+        printf("\t(empty)\n");
+    }
 }
 
 // typedef struct _storage {

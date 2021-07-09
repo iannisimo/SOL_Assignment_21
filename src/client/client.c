@@ -86,8 +86,6 @@ int treeWalkWrite(char *dirpath, int dirlen, int *N) {
 }
 
 int execute(Task_t task) {
-    // void *buf;
-    // size_t size;
     int status;
     switch (task.type) {
         case 'r': {
