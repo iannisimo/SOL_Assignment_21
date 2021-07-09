@@ -12,6 +12,13 @@
     if (f != e) \
         return r
 
+#define RET_NO(f, e) { \
+    int err; \
+    if ((err = f) != e) { \
+        return err; \
+    } \
+}
+
 #define IS_HELP(f) \
     (f & O_HELP)
 

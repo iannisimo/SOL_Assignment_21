@@ -41,6 +41,7 @@ typedef struct _storage_node {
 } StorageNode_t;
 
 Storage_t *initStorage(size_t max_len, size_t max_size);
+int StorageDestroy(Storage_t *storage);
 int openFile(Storage_t *storage, int fd, char create, char* filename);
 int closeFile(Storage_t *storage, int fd, char* filename);
 Storage_t *pushFile(Storage_t *, char *, size_t, void *);

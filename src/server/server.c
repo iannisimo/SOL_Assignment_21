@@ -25,7 +25,6 @@ int sig_loop(sigset_t sig_mask, int exit_pipe, Queue_t *queue, closeConditions_t
     int sig;
     while(1) {
         RET_PT(sigwait(&sig_mask, &sig), -1);
-        printf("Received signal %d\n", sig);
         if(sig == SIGINT || sig == SIGQUIT) {
             cc->closeAll = 1;
             RET_ON(close(exit_pipe), -1, -1);
@@ -94,7 +93,8 @@ int main(int argc, char **argv) {
         EXT_PT(pthread_join((worker_tids[i]), NULL));
     }
     free(worker_tids);
-
+    RET_ON(qFree(fdq), -1, -1);
+    RET_ON(StorageDestroy(storage), -1, -1);
     return 0;
 
     // int sfd;

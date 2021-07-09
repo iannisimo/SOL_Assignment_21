@@ -62,6 +62,7 @@ void *runMaster(void *args) {
             }
         }
     }
+    RET_ON(unlink(ma->sockname), -1, NULL);
     return NULL;
 }
 

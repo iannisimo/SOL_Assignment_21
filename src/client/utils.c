@@ -156,7 +156,6 @@ int getFileBytes(char *pathname, char *absPath, void **buf, size_t *size) {
     struct stat st;
     RET_ON(fstat(fd, &st), -1, errno);
     *size = st.st_size;
-    printf("%ld\t%s\n", *size, pathname);
     if(absPath != NULL)
         RET_ON(realpath(pathname, absPath), NULL, -1);
     RET_ON((*buf = malloc(*size + 1)), NULL, -1);

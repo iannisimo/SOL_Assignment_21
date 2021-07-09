@@ -59,11 +59,9 @@ int execute(int fd, Storage_t *storage) {
             void *data;
             char *pathname;
             if (N == 0) N = storage->length;
-            printf("N:\t%ld\n", N);
             for(int i = 0; i < N; i++) {
                 RET_ON((status = readIthFile(storage, i, &size, &data, &pathname)), -1, -1);
                 if(status == ENODATA) break;
-                printf("%s\n\t%ld\t%s\n", pathname, size, (char *) data);
                 size_t len = snprintf(buf, BUF_MAX, "%d %ld %s", status, size, pathname);
                 RET_ON(write(fd, buf, len + 1), -1, -1);
                 RET_ON(write(fd, data, size), -1, -1);
@@ -77,12 +75,14 @@ int execute(int fd, Storage_t *storage) {
             size_t size;
             if((getSz(buf, &size)) != 0) return -1;
             RET_ON(readUntil(fd, buf, BUF_MAX - 1, '\0'), -1, -1);
-            void* tmpData;
-            RET_ON((tmpData = malloc(size)), NULL, -1);
-            RET_ON(read(fd, tmpData, size), -1, -1);
-            int status;
-            RET_ON((status = appendToFile(storage, fd, buf, size, tmpData)), -1, -1);
-            free(tmpData);
+            int status = 0;
+            if(size > 0) {
+                void* tmpData;
+                RET_ON((tmpData = malloc(size)), NULL, -1);
+                RET_ON(read(fd, tmpData, size), -1, -1);
+                RET_ON((status = appendToFile(storage, fd, buf, size, tmpData)), -1, -1);
+                free(tmpData);
+            }
             size_t len = snprintf(buf, 4, "%d", status);
             RET_ON(write(fd, buf, len + 1), -1, -1);
             break;

@@ -140,6 +140,7 @@ int readNFiles(int N, const char *dirname) {
         }
     }
     RET_ON(status, -1, -1);
+    RET_ON(status, ENODATA, 0);
     return status;
 }
 

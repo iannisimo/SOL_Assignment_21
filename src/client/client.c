@@ -22,37 +22,36 @@ void printAll(char **argv) {
     }
 }
 
-int readTask(char **filenames, size_t files, char *dirname) {
-    int status;
+int readTask(char *filename, char *absRcv) {
+    int status = 0;
     char absPath[PATH_MAX];
     void *data;
     size_t size;
-    debugf("Sending read requests\n");
-    for(int i = 0; i < files; i++) {
-        RET_ON(getAbsPath(filenames[i], absPath), -1, -1);
-        RET_ON((status = openFile(absPath, 0)), -1, -1);
-        RET_ON((status = readFile(absPath, &data, &size)), -1, -1);
-        RET_ON((status = closeFile(absPath)), -1, -1);
-        printf("read: %s\n", (char *) data);
+    RET_ON(getAbsPath(filename, absPath), -1, -1);
+    RET_NO(openFile(absPath, 0), 0);
+    RET_ON((status = readFile(absPath, &data, &size)), -1, -1);
+    RET_NO(closeFile(absPath), 0);
+    if(absRcv != NULL && status == 0) {
+        RET_ON(writeToFolder(absPath, absRcv, data, size), -1, -1);
     }
-    return 0;
+    free(data);
+    return status;
 }
 
 int writeTask(char *filepath) {
-
     void *data;
     size_t size;
     int status;
     char absPath[PATH_MAX];
-    RET_ON((status = getFileBytes(filepath, absPath, &data, &size)), -1, -1);
+    RET_NO(getFileBytes(filepath, absPath, &data, &size), 0);
     RET_ON((status = openFile(absPath, O_CREATE)), -1, -1);
     if(status == EEXIST) {
         RET_ON((status = openFile(absPath, 0)), -1, -1);
     }
-    RET_ON((status = appendToFile(absPath, data, size, NULL)), -1, -1);
-    RET_ON((status = closeFile(absPath)), -1, -1);
-    
-    return 0;
+    RET_NO(status, 0);
+    if(size > 0) RET_ON((status = appendToFile(absPath, data, size, NULL)), -1, -1);
+    RET_NO(closeFile(absPath), 0);
+    return status;
 }
 
 int treeWalkWrite(char *dirpath, int dirlen, int *N) {
@@ -62,7 +61,6 @@ int treeWalkWrite(char *dirpath, int dirlen, int *N) {
     struct stat st;
     if(d == NULL) return -1;
     dirpath[dirlen++] = '/';
-    // if(dirlen > PATH_MAX) return -1;
     while ((ent = readdir(d)) != NULL) {
         if(*N == 0) return 0;
         dirpath[dirlen] = '\0';
@@ -74,8 +72,11 @@ int treeWalkWrite(char *dirpath, int dirlen, int *N) {
         if(S_ISDIR(st.st_mode)) {
             RET_ON(treeWalkWrite(dirpath, dirlen + entlen, N), -1, -1);
         } else {
-            writeTask(dirpath);
-            // printf("%s\n", dirpath);    
+            int status;
+            RET_ON((status = writeTask(dirpath)), -1, -1);
+            if(status != 0) {
+                debugf("Error sending %s to the server\n", dirpath);
+            }
             if(*N != -1) *N -= 1;
         }
     }
@@ -90,55 +91,51 @@ int execute(Task_t task) {
     int status;
     switch (task.type) {
         case 'r': {
-            char absPath[PATH_MAX];
+            debugf("\nSending read requests for %d file%s\n", task.n, task.n == 1 ? "" : "s");
+            int status = 0;
             char absRcv[PATH_MAX];
             if(task.receive_folder != NULL) {
                 RET_ON(getAbsPath(task.receive_folder, absRcv), -1, -1);
-                printf("%s\n", absRcv);
             }
-            void *data;
-            size_t size;
-            debugf("Sending read requests\n");
             for(int i = 0; i < task.n; i++) {
-                RET_ON(getAbsPath(task.send_args[i], absPath), -1, -1);
-                RET_ON((status = openFile(absPath, 0)), -1, -1);
-                RET_ON((status = readFile(absPath, &data, &size)), -1, -1);
-                RET_ON((status = closeFile(absPath)), -1, -1);
-                printf("read: %s\n", (char *) data);
-                if(task.receive_folder != NULL) {
-                    RET_ON(writeToFolder(absPath, absRcv, data, size), -1, -1);
+                debugf("Requesting file %s\n", task.send_args[i]);
+                RET_ON((status = readTask(task.send_args[i], task.receive_folder == NULL ? NULL : absRcv)), -1, -1);
+                if(status != 0) {
+                    debugf("Failed with error: %s\n", strerror(status));
                 }
             }
             break;
         }
         case 'R': {
+            if(task.n != 0)
+                debugf("\nRequesting %d random file%s from the server\n", task.n, task.n == 1 ? "" : "s");
+            else
+                debugf("\nRequesting all files from the server\n");
             RET_ON((status = readNFiles(task.n, task.receive_folder)), -1, -1);
+            if(status != 0) {
+                debugf("Failed with error: %s\n", strerror(status));
+            }
             break;
         }
         case 'W': {
-            char absPath[PATH_MAX];
-            void *data;
-            size_t size;
-            debugf("Sending write requests\n");
+            debugf("\nSending write requests for %d file%s\n", task.n, task.n == 1 ? "" : "s");
             for(int i = 0; i < task.n; i++) {
-                status = getFileBytes(task.send_args[i], absPath, &data, &size);
-                if(status != 0) continue;
-                RET_ON((status = openFile(absPath, O_CREATE)), -1, -1);
-                if(status == EEXIST) {
-                    RET_ON((status = openFile(absPath, 0)), -1, -1);
+
+                debugf("Writing file %s\n", task.send_args[i]);
+                RET_ON((status = writeTask(task.send_args[i])), -1, -1);
+                if(status != 0) {
+                    debugf("Failed with error: %s\n", strerror(status));
                 }
-                // printf("%s\n", (char *) data);
-                RET_ON((status = appendToFile(absPath, data, size, NULL)), -1, -1);
-                RET_ON((status = closeFile(absPath)), -1, -1);
             }
             break;
         }
         case 't': {
+            debugf("\nWaiting %d milliseconds\n", task.n);
             RET_ON(millisleep(task.n), -1, -1);
             break;
         }
         case 'w': {
-            // Recursify this
+            debugf("\nSending the contents of %s to the server\n", task.send_args[0]);
             char absPath[PATH_MAX];
             int N = task.n == 0 ? -1 : task.n;
             RET_ON(getAbsPath(task.send_args[0], absPath), -1, -1);
@@ -147,7 +144,10 @@ int execute(Task_t task) {
             break;
         }
     }
-    return 0;
+    if(status == 0) {
+        debugf("Operation completed\n");
+    }
+    return status;
 }
 
 int main(int argc, char **argv) {
@@ -165,7 +165,9 @@ int main(int argc, char **argv) {
     Task_t nextTask;
     while((nextTask = getNext(argc, argv)).type != 0) {
         // printf("NTask: %c\n", nextTask.type);
-        execute(nextTask);
+        int status = execute(nextTask);
+        if(status == -1) debugf("Something went very wrong, unpredictable\n");
+        if(status > 0) printf("Operation not successful: %s\n", strerror(status));
     }
     closeConnection(sargs.sockname);
     return 0;
