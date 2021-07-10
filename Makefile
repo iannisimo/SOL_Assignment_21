@@ -18,7 +18,7 @@ clean:
 	+$(MAKE) clean -C $(CLIENT)
 
 test1:
-	@mkdir tests/output
+	@mkdir -p tests/output
 	@rm -rf tests/output/*
 	@echo Executing test1
 	@valgrind --leak-check=full ./src/server/server ./tests/test1.conf > tests/output/valgrind.log 2>&1 & echo "$$!" > tests/output/server.PID
