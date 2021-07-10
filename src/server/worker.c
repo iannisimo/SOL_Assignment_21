@@ -63,6 +63,7 @@ int execute(int fd, Storage_t *storage) {
                 RET_ON((status = readIthFile(storage, i, &size, &data, &pathname)), -1, -1);
                 if(status == ENODATA) break;
                 size_t len = snprintf(buf, BUF_MAX, "%d %ld %s", status, size, pathname);
+                printf("buf:\t%s\n", buf);
                 RET_ON(write(fd, buf, len + 1), -1, -1);
                 RET_ON(write(fd, data, size), -1, -1);
             }

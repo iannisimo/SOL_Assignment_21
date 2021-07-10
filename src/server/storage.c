@@ -161,6 +161,7 @@ int appendToFile(Storage_t *storage, int fd, char *filename, size_t size, void *
     void *tmpPointer;
     EXEC_RET_ON(RET_PT(pthread_mutex_unlock(&node->mutex), -1), (found = qFind(node->clients, fd)), -1, -1);
     EXEC_RET_ON(RET_PT(pthread_mutex_unlock(&node->mutex), -1), found, 0, EACCES);
+    // printf("size:\t%zu\nnsize:\t%zu\n", node->size, node->size+size);
     EXEC_RET_ON(RET_PT(pthread_mutex_unlock(&node->mutex), -1), (tmpPointer = realloc(node->data, node->size + size)), NULL, -1);
     node->data = tmpPointer;
     void* ptr = (void*)(((char*) node->data) + node->size);
@@ -300,7 +301,7 @@ void printSummary(Storage_t *storage) {
     StorageNode_t *node = storage->head;
     while(node != NULL) {
         if(node->filename != NULL) {
-            printf("%s\n", node->filename);
+            printf("\t%s\n", node->filename);
         }
         node = node->next;
     }

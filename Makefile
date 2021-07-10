@@ -21,8 +21,10 @@ test1:
 	@rm -rf tests/output/*
 	@echo Executing test1
 	@valgrind --leak-check=full ./src/server/server ./tests/test1.conf > tests/output/valgrind.log 2>&1 & echo "$$!" > tests/output/server.PID
-	@sleep 5
+	@sleep 2
 	@bash tests/test1.sh
+	@echo Sending SIGHUP to the server
 	@kill -s 1 `cat tests/output/server.PID`
+	@echo Done
 
 

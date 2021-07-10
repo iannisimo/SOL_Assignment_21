@@ -31,6 +31,13 @@ int readTask(char *filename, char *absRcv) {
     RET_NO(openFile(absPath, 0), 0);
     RET_ON((status = readFile(absPath, &data, &size)), -1, -1);
     RET_NO(closeFile(absPath), 0);
+    if(status == 0) {
+        if(absRcv != NULL) {
+            RET_ON(writeToFolder(absPath, absRcv, data, size), -1, -1);
+        } else {
+            debugf("\nfilename:\n%s\ndata:\n%s\n", filename, (char *) data);
+        }
+    }
     if(absRcv != NULL && status == 0) {
         RET_ON(writeToFolder(absPath, absRcv, data, size), -1, -1);
     }

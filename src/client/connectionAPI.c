@@ -32,12 +32,12 @@ int readUntil(int fd, char* buf, int len, char delim) {
 }
 
 int waitResponse(size_t *size, void **buf, char *pathname) {
-    static char stBuf[128];
+    static char stBuf[PATH_MAX + 128];
     int status;
-    RET_ON(readUntil(sfd, stBuf, 127, '\0'), -1, -1);
+    RET_ON(readUntil(sfd, stBuf, PATH_MAX+127, '\0'), -1, -1);
     char *token;
     RET_ON((token = strtok((char *) stBuf, " ")), NULL, -1);
-    RET_ON((getNumber(token, &status)), 0, -1);
+    RET_ON((getNumber(token, &status)), -1, -1);
     RET_ON((token = strtok(NULL, " ")), NULL, status);
     RET_ON(size, NULL, -1);
     RET_ON((getSZ(token, size)), -1, -1);
@@ -132,11 +132,10 @@ int readNFiles(int N, const char *dirname) {
         RET_ON(getAbsPath(relRcv, absRcv), -1, -1);
     }
     while((status = waitResponse(&size, &data, pathname)) == 0) {
-        // SaveToDir(buf, size, dirname);
         if(dirname != NULL) {
             RET_ON(writeToFolder(pathname, absRcv, data, size), -1, -1);
         } else {
-            printf("%s\n\t%ld\t%s\n", pathname, size, (char *) data);
+            debugf("\nfilename:\n%s\ndata:\n%s\n", pathname, (char *) data);
         }
     }
     RET_ON(status, -1, -1);

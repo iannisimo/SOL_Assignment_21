@@ -31,9 +31,10 @@ char getNumber(char* str, int* val) {
     errno = 0;
     *val = (int) strtol(str, &endptr, 10);
     if(errno != 0 || endptr == NULL || *endptr != '\0') {
-        return 0;
+        if(errno == 0) errno = EDOM;
+        return -1;
     }
-    return 1;
+    return 0;
 }
 
 int getSZ(char* str, size_t* val) {
@@ -77,7 +78,7 @@ int tokenize(char *string, char* separator, char type, int *n, char ***args) {
         }
     } else if(type == 'R') {
         if(strncmp(string, "n=", 2) == 0) {
-            RET_ON((getNumber(string + 2, n)), 0, ERR_DOMAIN);
+            RET_ON((getNumber(string + 2, n)), -1, ERR_DOMAIN);
         } else {
             *n = 0;
         }
@@ -91,7 +92,7 @@ int tokenize(char *string, char* separator, char type, int *n, char ***args) {
         char *nStr = strtok(NULL, separator);
         if(nStr != NULL) {
             if(strncmp(nStr, "n=", 2) == 0) {
-                RET_ON((getNumber(nStr + 2, n)), 0, ERR_DOMAIN);
+                RET_ON((getNumber(nStr + 2, n)), -1, ERR_DOMAIN);
             } else {
                 *n = 0;
             }
