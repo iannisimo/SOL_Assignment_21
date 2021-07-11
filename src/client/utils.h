@@ -6,7 +6,7 @@
 
 #define RET_ON(f, e, r) \
     if (f == e) { \
-        if(strcmp(#r, "-1") == 0) \
+        if(#r[0] == '-') if(#r[1] == '1') \
             printf("%s:%d\t%s\n\t%s(%d)\n", __FILE__, __LINE__, #f, strerror(errno), errno); \
         return r; \
     }

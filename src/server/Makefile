@@ -4,18 +4,27 @@ TARGETS	      = users matrix wc
 OPTFLAGS	  = -g -O3 
 LIBS		  = -lpthread
 
-BIN           = server
+BUILD		  = ../../build/server/
+EXE           = ../../exe/
 
-OBJECTS      := server.o utils.o config.o worker.o queue.o storage.o connection.o
+BIN           = $(EXE)server
+
+WITHHEADER   := utils.o config.o worker.o queue.o storage.o connection.o
+OBJECTS      := $(WITHHEADER) server.o
+HEADERS      := $(addsuffix .h,$(basename $(WITHHEADER)))
 
 .PHONY: clean all
 .SUFFIXES: .c .h
 
-all: clean $(OBJECTS)
-	$(CC) $(OBJECTS) $(CFLAGS) $(OPTFLAGS) $(LIBS) -o $(BIN)
+all: prepbuild $(addprefix $(BUILD),$(OBJECTS)) $(HEADERS)
+	$(CC) $(addprefix $(BUILD),$(OBJECTS)) $(CFLAGS) $(OPTFLAGS) $(LIBS) -o $(BIN)
 
-%.o: %.c
+prepbuild:
+	@mkdir -p $(EXE)
+	@mkdir -p $(BUILD)
+
+$(addprefix $(BUILD),%.o): %.c
 	$(CC) $(CFLAGS) $(OPTFLAGS) -c $(LIBS) $< -o $@
 
-clean : 
+clean : prepbuild
 	-rm -rf $(OBJECTS) $(BIN)

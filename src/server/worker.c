@@ -73,7 +73,7 @@ int execute(int fd, Storage_t *storage) {
         case 'a': { // Append to file
             RET_ON(readUntil(fd, buf, BUF_MAX - 1, ' '), -1, -1);
             size_t size;
-            if((getSz(buf, &size)) != 0) return -1;
+            RET_ON(getSz(buf, &size), -1, -1);
             RET_ON(readUntil(fd, buf, BUF_MAX - 1, '\0'), -1, -1);
             int status = 0;
             if(size > 0) {
@@ -113,7 +113,10 @@ void *runWorker(void *args) {
             continue;
         }
         if(status == -1) { // Error during execution
-            // notify_aborted();
+            printf("Fatal error\n");
+            wa->cc->closeAll = 1;
+            EXT_ON_PT(qWakeAll(wa->queue), -1);
+            break;
         }
         RET_ON(write(wa->fd_pipe, &fd, sizeof(int)), -1, NULL);
     }

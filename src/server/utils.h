@@ -16,8 +16,11 @@
         continue;
 
 #define RET_ON(f, e, r) \
-    if (f == e) \
-        return r;
+    if (f == e) { \
+        if(#r[0] == '-') if(#r[1] == '1') \
+            printf("%s:%d\t%s returns %s\n", __FILE__, __LINE__, #f, #r); \
+        return r; \
+    }
 
 #define RET_NO(f, e) { \
     int __err; \

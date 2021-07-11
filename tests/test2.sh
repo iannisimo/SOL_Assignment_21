@@ -1,4 +1,4 @@
-CLIENT='src/client/client'
+CLIENT='exe/client'
 SOCKET='tests/output/socket'
 
 echo "Starting clients"

@@ -37,22 +37,22 @@ static int parseSize(char* val, long long *size) {
             sizeMul = 1ll;
             *(end - 1) = '\0';
             break;
-        };
+        }
         case 'K': {
             sizeMul = 1000ll;
             *(end - 1) = '\0';
             break;
-        };
+        }
         case 'M': {
             sizeMul = 1000000ll;
             *(end - 1) = '\0';
             break;
-        };
+        }
         case 'G': {
             sizeMul = 1000000000ll;
             *(end - 1) = '\0';
             break;
-        };
+        }
     }
     RET_ON(getLLong(val, size), EINVAL, EINVAL);
     *size *= sizeMul;

@@ -94,7 +94,7 @@ int treeWalkWrite(char *dirpath, int dirlen, int *N) {
 }
 
 int execute(Task_t task) {
-    int status;
+    int status = 0;
     switch (task.type) {
         case 'r': {
             debugf("\nSending read requests for %d file%s\n", task.n, task.n == 1 ? "" : "s");
