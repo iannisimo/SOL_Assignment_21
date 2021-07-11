@@ -13,7 +13,7 @@ client:
 	+$(MAKE) -C $(CLIENT)
 
 clean: 
-	@echo I am cleaning all your mess... maybe
+	@rm -rf tests/output/*
 	+$(MAKE) clean -C $(SERVER)
 	+$(MAKE) clean -C $(CLIENT)
 

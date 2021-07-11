@@ -14,7 +14,6 @@ int execute(int fd, Storage_t *storage) {
     s = read(fd, &op, 1);
     RET_ON(s, -1, -1);
     RET_ON(s, 0, -2);
-    // printf("\tOP:\t%c\n", op);
     switch (op) {
         case 'c': { // Create and open
             RET_ON(read(fd, buf, BUF_MAX - 1), -1, -1);
