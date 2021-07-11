@@ -40,5 +40,5 @@ $(addprefix $(BUILD),%.o): %.c
 	$(CC) $(CFLAGS) $(OPTFLAGS) -c $< -o $@
 
 
-clean : prepbuild
-	-rm -rf $(OBJECTS) $(BIN) $(LIBS)
+clean : 
+	-rm -rf $(addprefix $(BUILD),$(OBJECTS) $(LIBS)) $(BIN)
