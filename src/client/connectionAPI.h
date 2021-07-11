@@ -14,11 +14,12 @@
     ((f & O_LOCK) >> 1)
 
 #define API_ERR(f, e, err) { \
+    errno = 0; \
     if (f == e) { \
         if (err != -1) { \
             errno = err; \
         } else { \
-            printf("%s:%d\t%s\n\t%s(%d)\n", __FILE__, __LINE__, #f, strerror(errno), errno); \
+            debugf("%s:%d\t%s\n\t%s(%d)\n", __FILE__, __LINE__, #f, strerror(errno), errno); \
         } \
         return -1; \
     } \
@@ -30,19 +31,6 @@
         errno = err; \
         return -1; \
     }
-
-typedef struct _request {
-    const char *pathname;
-    void *data;
-    char type;
-    size_t size;
-} Request_t;
-
-typedef struct _response {
-    void *data;
-    char status_code;
-    size_t size; 
-} Response_t;
 
 int openConnection(const char *sockname, int msec, const struct timespec abstime);
 int closeConnection(const char *sockname);

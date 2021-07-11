@@ -1,0 +1,14 @@
+
+Waiting 200 milliseconds
+Operation completed
+
+Sending the contents of tests/files/algoritmica to the server
+Error sending /home/simone/projects/UniPi/In_Progress/Sistemi_Operativi/Laboratorio/SOL_Assignment_21/tests/files/algoritmica/Laboratorio/6_lez/2.QSort_string/TestSet/input3.txt to the server: File too large(27)
+Error sending /home/simone/projects/UniPi/In_Progress/Sistemi_Operativi/Laboratorio/SOL_Assignment_21/tests/files/algoritmica/Laboratorio/6_lez/2.QSort_string/TestSet/output3.txt to the server: File too large(27)
+Operation completed
+
+Waiting 200 milliseconds
+Operation completed
+
+Requesting all files from the server
+Operation completed

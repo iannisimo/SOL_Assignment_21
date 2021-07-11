@@ -10,6 +10,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include "utils.h"
+#include "connectionAPI.h"
 
 static char debugPrint = 0;
 
@@ -42,13 +43,19 @@ int getSZ(char* str, size_t* val) {
     errno = 0;
     long tmp = strtol(str, &endptr, 10);
     if(errno != 0 || endptr == NULL || *endptr != '\0') {
+        if(errno == 0) errno = EDOM;
         return -1;
     }
     *val = (size_t) tmp;
     return 0;
 }
 
-static int strncnt(char *str, char elem, int max) {
+/**
+ * @brief Count the occurrecnces of elem in str up to max
+ * 
+ * @return The number of occurrences found
+ */
+int strncnt(char *str, char elem, int max) {
     RET_ON(str, NULL, -1);
     int count = 0;
     int i = 0;
@@ -60,50 +67,6 @@ static int strncnt(char *str, char elem, int max) {
     return count;
 }
 
-int tokenize(char *string, char* separator, char type, int *n, char ***args) {
-    char **strings = NULL;
-    RET_ON(string, NULL, -1);
-    RET_ON(string[0], '-', ERR_INVALID);
-    if(type == 'W' || type == 'r' || type == 'c') {
-        int count = strncnt(string, separator[0], PATH_MAX) + 1;
-        *n = count;
-        RET_ON((strings = malloc(count * sizeof(char*))), NULL, ERR_NO_MEMORY);
-        char *token = strtok(string, separator);
-        for(int i = 0; i < count; i++) {
-            if(token == NULL) break;
-            int token_len = strnlen(token, PATH_MAX) + 1;
-            RET_ON((strings[i] = malloc(token_len * sizeof(char))), NULL, ERR_NO_MEMORY);
-            strncpy(strings[i], token, token_len);
-            token = strtok(NULL, separator);
-        }
-    } else if(type == 'R') {
-        if(strncmp(string, "n=", 2) == 0) {
-            RET_ON((getNumber(string + 2, n)), -1, ERR_DOMAIN);
-        } else {
-            *n = 0;
-        }
-    } else if(type == 'w') {
-        char *dir = strtok(string, separator);
-        RET_ON(dir, NULL, -1);
-        RET_ON((strings = malloc(sizeof(char*))), NULL, ERR_NO_MEMORY);
-        int dirLen = strnlen(dir, PATH_MAX) + 1;
-        RET_ON((strings[0] = malloc(dirLen * sizeof(char))), NULL, ERR_NO_MEMORY);
-        strncpy(strings[0], dir, dirLen);
-        char *nStr = strtok(NULL, separator);
-        if(nStr != NULL) {
-            if(strncmp(nStr, "n=", 2) == 0) {
-                RET_ON((getNumber(nStr + 2, n)), -1, ERR_DOMAIN);
-            } else {
-                *n = 0;
-            }
-        }
-    } else if(type == 't') {
-        RET_ON((getNumber(string, n)), 0, ERR_DOMAIN);
-    }
-    *args = strings;
-    return 0;
-}
-
 int debugf(const char *fmt, ...) {
     if(debugPrint == 0) return 0;
     va_list args;
@@ -113,6 +76,11 @@ int debugf(const char *fmt, ...) {
     return r;
 }
 
+/**
+ * @brief Equivalent to mkdir -p
+ * 
+ * @return 0 on success, -1 on error
+ */
 int mkdir_p(char *path) {
     struct stat sb;
     for(char *p = path + 1; *p; p++) {
@@ -122,10 +90,12 @@ int mkdir_p(char *path) {
                 // Path does not exist
                 if(mkdir(path, S_IRWXU) == -1) {
                     *p = '/';
+                    errno = ENOENT;
                     return -1;
                 }
             } else if(!S_ISDIR(sb.st_mode)) {
                 *p = '/';
+                errno = ENOTDIR;
                 return -1;
             }
             *p = '/';
@@ -138,16 +108,17 @@ int writeToFolder(char *filename, char *dirname, void *data, size_t size) {
     size_t filelen = strnlen(filename, PATH_MAX);
     size_t pathlen = strnlen(dirname, PATH_MAX);
     if(pathlen + filelen >= PATH_MAX) {
-        return ENAMETOOLONG;
+        errno = ENAMETOOLONG;
+        return -1;
     }
     char fullPath[PATH_MAX];
     strncpy(fullPath, dirname, pathlen);
     strncpy(fullPath + pathlen, filename, filelen+1);
-    RET_ON(mkdir_p(fullPath), -1, -1);
+    API_ERR(mkdir_p(fullPath), -1, -1);
     int file_fd;
-    RET_ON((file_fd = open(fullPath, O_WRONLY | O_CREAT, 0644)), -1, -1);
-    RET_ON(write(file_fd, data, size), -1, -1);
-    RET_ON(close(file_fd), -1, -1);
+    API_ERR((file_fd = open(fullPath, O_WRONLY | O_CREAT, 0644)), -1, -1);
+    API_ERR(write(file_fd, data, size), -1, -1);
+    API_ERR(close(file_fd), -1, -1);
     return 0;
 }
 

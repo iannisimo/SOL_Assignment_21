@@ -7,6 +7,55 @@
 #include "argparse.h"
 #include "utils.h"
 
+int tokenize(char *string, char* separator, char type, int *n, char ***args) {
+    char **strings = NULL;
+    RET_ON(string, NULL, -1);
+    RET_ON(string[0], '-', EINVAL);
+    if(type == 'W' || type == 'r' || type == 'c') {
+        int count = strncnt(string, separator[0], PATH_MAX) + 1;
+        *n = count;
+        RET_ON((strings = malloc(count * sizeof(char*))), NULL, ENOMEM);
+        char *token = strtok(string, separator);
+        for(int i = 0; i < count; i++) {
+            if(token == NULL) break;
+            int token_len = strnlen(token, PATH_MAX) + 1;
+            RET_ON((strings[i] = malloc(token_len * sizeof(char))), NULL, ENOMEM);
+            strncpy(strings[i], token, token_len);
+            token = strtok(NULL, separator);
+        }
+    } else if(type == 'R') {
+        if(strncmp(string, "n=", 2) == 0) {
+            RET_ON((getNumber(string + 2, n)), -1, EDOM);
+        } else {
+            *n = 0;
+        }
+    } else if(type == 'w') {
+        char *dir = strtok(string, separator);
+        RET_ON(dir, NULL, -1);
+        RET_ON((strings = malloc(sizeof(char*))), NULL, ENOMEM);
+        int dirLen = strnlen(dir, PATH_MAX) + 1;
+        RET_ON((strings[0] = malloc(dirLen * sizeof(char))), NULL, ENOMEM);
+        strncpy(strings[0], dir, dirLen);
+        char *nStr = strtok(NULL, separator);
+        if(nStr != NULL) {
+            if(strncmp(nStr, "n=", 2) == 0) {
+                RET_ON((getNumber(nStr + 2, n)), -1, EDOM);
+            } else {
+                *n = 0;
+            }
+        }
+    } else if(type == 't') {
+        RET_ON((getNumber(string, n)), 0, EDOM);
+    }
+    *args = strings;
+    return 0;
+}
+
+/**
+ * @brief Run through all the arguments searching for the ones that should appear only once 
+ * 
+ * @return SingleArgs_t 
+ */
 SingleArgs_t parseSingleArgs(int argc, char** argv) {
     SingleArgs_t args;
     args.flags = 0;
@@ -42,6 +91,11 @@ SingleArgs_t parseSingleArgs(int argc, char** argv) {
     return args;
 }
 
+/**
+ * @brief Checks if the task just parsed is followed by a -d indicating that the user wants to save the files in a folder
+ * 
+ * @return The desired pathname, NULL if not present 
+ */
 char *getRcvDir(int argc, char** argv) {
     int idx = optind;
     RET_ON(argv[idx], NULL, NULL);
@@ -62,6 +116,11 @@ char *getRcvDir(int argc, char** argv) {
     return arg;
 }
 
+/**
+ * @brief Get the Next task to send
+ * 
+ * @return Task_t 
+ */
 Task_t getNext(int argc, char** argv) {
     Task_t task = {
         .receive_folder = NULL,

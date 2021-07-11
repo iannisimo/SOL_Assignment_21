@@ -1,0 +1,22 @@
+
+Waiting 200 milliseconds
+Operation completed
+
+Sending the contents of tests/files/can to the server
+Operation completed
+
+Waiting 200 milliseconds
+Operation completed
+
+Sending read requests for 1 file
+Requesting file tests/files/can/you/search/through/folders
+
+filename:
+tests/files/can/you/search/through/folders
+data:
+Yes!
+
+Operation completed
+
+Requesting all files from the server
+Operation completed

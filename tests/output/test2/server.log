@@ -1,0 +1,26 @@
+Starting setup sequence
+Masked signals
+Spawning threads
+Started a worker thread
+Started a worker thread
+Started a worker thread
+Started a worker thread
+Dispatcher thread started
+Received signal Hangup(1)
+The maximum number of files saved on the server was:
+	10 files
+The maximum size occupied on the server was:
+	812116 Bytes
+The cleanup algorithm has removed:
+	476 files
+List of all files saved on the server at the end:
+	/home/simone/projects/UniPi/In_Progress/Sistemi_Operativi/Laboratorio/SOL_Assignment_21/tests/files/algoritmica/Laboratorio/6_lez/4.QSort_SS/TestSet/output3.txt
+	/home/simone/projects/UniPi/In_Progress/Sistemi_Operativi/Laboratorio/SOL_Assignment_21/tests/files/algoritmica/Laboratorio/6_lez/4.QSort_SS/TestSet/output4.txt
+	/home/simone/projects/UniPi/In_Progress/Sistemi_Operativi/Laboratorio/SOL_Assignment_21/tests/files/algoritmica/Laboratorio/6_lez/4.QSort_SS/TestSet/output0.txt
+	/home/simone/projects/UniPi/In_Progress/Sistemi_Operativi/Laboratorio/SOL_Assignment_21/tests/files/algoritmica/Laboratorio/6_lez/4.QSort_SS/TestSet/input4.txt
+	/home/simone/projects/UniPi/In_Progress/Sistemi_Operativi/Laboratorio/SOL_Assignment_21/tests/files/algoritmica/Laboratorio/6_lez/4.QSort_SS/TestSet/input1.txt
+	/home/simone/projects/UniPi/In_Progress/Sistemi_Operativi/Laboratorio/SOL_Assignment_21/tests/files/algoritmica/Laboratorio/6_lez/4.QSort_SS/TestSet/output1.txt
+	/home/simone/projects/UniPi/In_Progress/Sistemi_Operativi/Laboratorio/SOL_Assignment_21/tests/files/algoritmica/Laboratorio/6_lez/4.QSort_SS/TestSet/output2.txt
+	/home/simone/projects/UniPi/In_Progress/Sistemi_Operativi/Laboratorio/SOL_Assignment_21/tests/files/algoritmica/Laboratorio/6_lez/4.QSort_SS/TestSet/input2.txt
+	/home/simone/projects/UniPi/In_Progress/Sistemi_Operativi/Laboratorio/SOL_Assignment_21/tests/files/algoritmica/Laboratorio/6_lez/4.QSort_SS/main.c
+	/home/simone/projects/UniPi/In_Progress/Sistemi_Operativi/Laboratorio/SOL_Assignment_21/tests/files/algoritmica/Laboratorio/6_lez/1.QuickSort/main.c

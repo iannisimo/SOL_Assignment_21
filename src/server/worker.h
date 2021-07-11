@@ -9,6 +9,7 @@ typedef struct _worker_args {
     Queue_t *queue;
     Storage_t *storage;
     int fd_pipe;
+    int exit_pipe;
     closeConditions_t *cc;
 } WArgs_t;
 

@@ -113,9 +113,7 @@ void *runWorker(void *args) {
             continue;
         }
         if(status == -1) { // Error during execution
-            printf("Fatal error\n");
-            wa->cc->closeAll = 1;
-            EXT_ON_PT(qWakeAll(wa->queue), -1);
+            EXT_ON_PT(close(wa->exit_pipe), -1);
             break;
         }
         RET_ON(write(wa->fd_pipe, &fd, sizeof(int)), -1, NULL);

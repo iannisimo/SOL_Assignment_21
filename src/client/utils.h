@@ -29,8 +29,8 @@
     ((f & O_PRINT) >> 1)
 
 void setDebug(char dgb);
+int strncnt(char *str, char elem, int max);
 int millisleep(int millis);
-int tokenize(char *string, char* separator, char type, int *n, char ***args);
 char getNumber(char* str, int* val);
 int getSZ(char* str, size_t* val);
 int debugf(const char *fmt, ...);

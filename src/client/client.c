@@ -11,17 +11,12 @@
 #include <dirent.h> 
 #include "utils.h"
 
-void printAll(char **argv) {
-    RET_ON(argv, NULL, ;)
-    printf("Arguments\n");
-    int run = 0;
-    while(run + 1) {
-        if(argv[run] == NULL || argv[run][0] == '\0') return;
-        printf("\t%s\n", argv[run]);
-        run++;
-    }
-}
-
+/**
+ * @brief Request filename fro the server
+ * 
+ * @param absRcv Where to save the file, NULL to print to stdout
+ * @return The status code from the server, -1 on error
+ */
 int readTask(char *filename, char *absRcv) {
     int status = 0;
     char absPath[PATH_MAX];
@@ -45,6 +40,11 @@ int readTask(char *filename, char *absRcv) {
     return status;
 }
 
+/**
+ * @brief Send the file in filepath to the server
+ * 
+ * @return The status code from the server, -1 on error
+ */
 int writeTask(char *filepath) {
     void *data;
     size_t size;
@@ -61,6 +61,11 @@ int writeTask(char *filepath) {
     return status;
 }
 
+/**
+ * @brief Recursive funcion that sends all the files in dirpath to the server and calls itself on the directories
+ * 
+ * @return The status code from the server, -1 on error
+ */
 int treeWalkWrite(char *dirpath, int dirlen, int *N) {
     if(dirlen >= PATH_MAX-1) return -1;
     struct dirent *ent;
@@ -93,6 +98,11 @@ int treeWalkWrite(char *dirpath, int dirlen, int *N) {
     return 0;
 }
 
+/**
+ * @brief Execute a given task
+ * 
+ * @return The status code from the server, -1 on error
+ */
 int execute(Task_t task) {
     int status = 0;
     switch (task.type) {
@@ -157,6 +167,7 @@ int execute(Task_t task) {
 }
 
 int main(int argc, char **argv) {
+    // Read the configuration parameters
     SingleArgs_t sargs = parseSingleArgs(argc, argv);
     if(IS_HELP(sargs.flags)) {
         printf(HELP_MSG);
@@ -167,13 +178,15 @@ int main(int argc, char **argv) {
         printf("Please use the option -f to select a socket\n");
         return -1;
     }
+    // Connect and perform every task one by one
     openConnection(sargs.sockname, 1500, (const struct timespec) {.tv_nsec = 5000000000});
     Task_t nextTask;
     while((nextTask = getNext(argc, argv)).type != 0) {
-        // printf("NTask: %c\n", nextTask.type);
         int status = execute(nextTask);
-        if(status == -1) debugf("Something went very wrong, unpredictable\n");
-        // if(status > 0) printf("Operation not successful: %s\n", strerror(status));
+        if(status == -1) {
+            debugf("Something went very wrong, exiting...\n");
+            break;
+        }
     }
     closeConnection(sargs.sockname);
     return 0;

@@ -79,7 +79,7 @@ int main(int argc, char **argv) {
 
     Queue_t *fdq;
     RET_ON((fdq = init_queue()), NULL, -1);
-    WArgs_t wargs = {.fd_pipe = fd_pipes[1], .queue = fdq, .storage = storage, .cc = &cc};
+    WArgs_t wargs = {.fd_pipe = fd_pipes[1], .queue = fdq, .storage = storage, .exit_pipe = exit_pipes[1], .cc = &cc};
     MArgs_t margs = {.fd_pipe = fd_pipes[0], .queue = fdq, .sockname = config.sockname, .exit_pipe = exit_pipes[0], .cc = &cc};
 
     printf("Spawning threads\n");

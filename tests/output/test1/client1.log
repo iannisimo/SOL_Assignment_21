@@ -1,0 +1,14 @@
+
+Waiting 200 milliseconds
+Operation completed
+
+Sending write requests for 2 files
+Writing file tests/files/notSoEmptyFile
+Writing file tests/files/emptyFile
+Operation completed
+
+Waiting 200 milliseconds
+Operation completed
+
+Requesting 1 random file from the server
+Operation completed
