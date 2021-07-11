@@ -53,6 +53,8 @@ dkms.conf
 
 # Build folder
 build/
+exe/
+tests/output
 
 # .vscode config
 .vscode/
