@@ -2,6 +2,3 @@ N_WORKERS:   2
 MAX_SIZE:    100M
 MAX_FILES:   100
 SOCKET_NAME: /tmp/aaa
-
-
-

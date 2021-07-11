@@ -155,13 +155,15 @@ int removeOverflow(Storage_t* storage) {
 int appendToFile(Storage_t *storage, int fd, char *filename, size_t size, void *data) {
     RET_ON(storage, NULL, -1);
     StorageNode_t *node;
-    RET_ON((node = findFile(storage, filename)), NULL, ENOENT);    
+    RET_ON((node = findFile(storage, filename)), NULL, ENOENT);   
+
+    if(node->size + size > storage->max_size) return EFBIG;
+
     RET_PT(pthread_mutex_lock(&node->mutex), -1);
     int found;
     void *tmpPointer;
     EXEC_RET_ON(RET_PT(pthread_mutex_unlock(&node->mutex), -1), (found = qFind(node->clients, fd)), -1, -1);
     EXEC_RET_ON(RET_PT(pthread_mutex_unlock(&node->mutex), -1), found, 0, EACCES);
-    // printf("size:\t%zu\nnsize:\t%zu\n", node->size, node->size+size);
     EXEC_RET_ON(RET_PT(pthread_mutex_unlock(&node->mutex), -1), (tmpPointer = realloc(node->data, node->size + size)), NULL, -1);
     node->data = tmpPointer;
     void* ptr = (void*)(((char*) node->data) + node->size);
@@ -309,29 +311,3 @@ void printSummary(Storage_t *storage) {
         printf("\t(empty)\n");
     }
 }
-
-// typedef struct _storage {
-//     struct _storage_node *head; // Pointer to the head of the list
-//     struct _storage_node *tail; // Pointer to the tail of the list
-//     size_t max_length;
-//     size_t max_size;
-//     size_t length;              // Number of files currently saved
-//     size_t size;                // Cumulative size of the files
-//     pthread_mutex_t read_mtx;      
-//     pthread_cond_t read_cond;
-//     pthread_mutex_t write_mtx;      
-//     pthread_cond_t write_cond;
-//     size_t readers;
-//     size_t writers;
-//     char writing;
-// } Storage_t;
-
-// typedef struct _storage_node {
-//     struct _storage_node *prev; // Previous node in the list
-//     struct _storage_node *next; // Next node in the list
-//     char *filename;             // Absolute path of the file
-//     void *data;                 // Pointer to the bytearray containing the file data
-//     size_t size;                // Size of `data`
-//     Queue_t *clients;           // File descriptors of the clients who opened the file
-//     pthread_mutex_t mutex;      // Mutex user do block certain operations for multithread concurrency
-// } StorageNode_t;

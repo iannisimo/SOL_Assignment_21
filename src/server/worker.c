@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <unistd.h>
+#include <string.h>
 
 #include "worker.h"
 #include "utils.h"
@@ -79,7 +80,11 @@ int execute(int fd, Storage_t *storage) {
             if(size > 0) {
                 void* tmpData;
                 RET_ON((tmpData = malloc(size)), NULL, -1);
-                RET_ON(read(fd, tmpData, size), -1, -1);
+                ssize_t tmpDataSize = 0;
+                while((size - tmpDataSize) != 0) {
+                    void* ptr = (void*)(((char*) tmpData) + tmpDataSize);
+                    RET_ON((tmpDataSize += read(fd, ptr, size - tmpDataSize)), -1, -1);
+                }
                 RET_ON((status = appendToFile(storage, fd, buf, size, tmpData)), -1, -1);
                 free(tmpData);
             }
@@ -101,7 +106,6 @@ void *runWorker(void *args) {
         EXT_ON_PT((fd = qPop(wa->queue)), -1);
         if(wa->cc->closeAll) break;
         int status = execute(fd, wa->storage);
-        // printf("status\t%d\n", status);
         if(status == -2) { // Client-side connection close
             close(fd);
             closeAllFiles(wa->storage, fd);

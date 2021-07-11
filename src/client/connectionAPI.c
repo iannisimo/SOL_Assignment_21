@@ -47,7 +47,11 @@ int waitResponse(size_t *size, void **buf, char *pathname) {
         strncpy(pathname, token, PATH_MAX);
     }
     RET_ON((*buf = malloc(*size)), NULL, -1);
-    RET_ON(read(sfd, *buf, *size), -1, -1);
+    ssize_t tmpBufLen = 0;
+    while((*size - tmpBufLen) > 0) {
+        void* ptr = (void*)(((char*) *buf) + tmpBufLen);
+        RET_ON((tmpBufLen += read(sfd, ptr, *size - tmpBufLen)), -1, -1);
+    }
     return status;
 }
 
@@ -117,6 +121,7 @@ int readFile(const char *pathname, void **buf, size_t* size) {
     return status;
 }
 
+// USE APIERR
 int readNFiles(int N, const char *dirname) {
     char tmpBuf[128];
     int len = snprintf(tmpBuf, 127, "R%d", N);

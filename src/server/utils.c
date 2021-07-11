@@ -41,7 +41,7 @@ int getSz(char *str, size_t *val) {
     errno = 0;
     unsigned long tmp = strtoul(str, &endptr, 10);
     if(errno != 0 || endptr == NULL || *endptr != '\0') {
-        return EINVAL;
+        return -1;
     }
     *val = (size_t) tmp;
     return 0;

@@ -82,7 +82,8 @@ int treeWalkWrite(char *dirpath, int dirlen, int *N) {
             int status;
             RET_ON((status = writeTask(dirpath)), -1, -1);
             if(status != 0) {
-                debugf("Error sending %s to the server\n", dirpath);
+                debugf("Error sending %s to the server: %s(%d)\n", dirpath, strerror(status), status);
+                if(status == ENOENT) debugf("The file might have been deleted by the server to clear space\n");
             }
             if(*N != -1) *N -= 1;
         }
@@ -172,7 +173,7 @@ int main(int argc, char **argv) {
         // printf("NTask: %c\n", nextTask.type);
         int status = execute(nextTask);
         if(status == -1) debugf("Something went very wrong, unpredictable\n");
-        if(status > 0) printf("Operation not successful: %s\n", strerror(status));
+        // if(status > 0) printf("Operation not successful: %s\n", strerror(status));
     }
     closeConnection(sargs.sockname);
     return 0;

@@ -13,7 +13,7 @@
 #define IS_LOCK(f) \
     ((f & O_LOCK) >> 1)
 
-#define API_ERR(f, e, err) \
+#define API_ERR(f, e, err) { \
     if (f == e) { \
         if (err != -1) { \
             errno = err; \
@@ -21,7 +21,8 @@
             printf("%s:%d\t%s\n\t%s(%d)\n", __FILE__, __LINE__, #f, strerror(errno), errno); \
         } \
         return -1; \
-    }
+    } \
+}
 
 #define API_NERR(f, ne) \
     int err; \
