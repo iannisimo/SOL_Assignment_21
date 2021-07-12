@@ -24,7 +24,11 @@
 
 #define RET_ERRNO(f) { \
     if(f != 0) { \
-        return errno == 0 ? -1 : errno; \
+        int _err = errno; \
+        if(_err == 0) { \
+            return -1; \
+        } \
+        return _err; \
     } \
 }
 

@@ -27,7 +27,8 @@ int readTask(char *filename, char *absRcv) {
     status = readFile(absPath, &data, &size);
     if(closeFile(absPath) != 0) {
         free(data);
-        return errno;
+        int _err = errno;
+        return _err;
     }
     if(status == 0) {
         if(absRcv != NULL) {
@@ -61,7 +62,8 @@ int writeTask(char *filepath) {
     }
     if(status != 0) {
         free(data);
-        return errno != 0 ? errno : -1;
+        int _err = errno;
+        return _err != 0 ? _err : -1;
     }
     int appendStatus = 0;
     if(size > 0) {
