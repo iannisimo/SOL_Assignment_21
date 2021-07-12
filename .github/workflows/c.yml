@@ -1,0 +1,19 @@
+name: C CI
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: make
+      run: make
+    - name: make tests
+      run: make test1 test2
+    - name: make check
+      run: make check
