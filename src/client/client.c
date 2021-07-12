@@ -200,6 +200,8 @@ int execute(Task_t task) {
 }
 
 int main(int argc, char **argv) {
+    void* a = malloc(10);
+    printf("%p\n", a);
     // Read the configuration parameters
     SingleArgs_t sargs = parseSingleArgs(argc, argv);
     if(IS_HELP(sargs.flags)) {

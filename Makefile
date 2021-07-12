@@ -47,4 +47,4 @@ test2:
 	@bash tests/check.sh test2
 
 check:
-	@echo `bash tests/check.sh test1 sum` `bash tests/check.sh test2 sum` | awk -v sum=0 '{for (i=1;i<=NF;i++) {sum += $$i}} END {if (sum == 0) print "PASSED"; else print "NOT PASSED: "sum" ERRORS";}'
+	@echo `bash tests/check.sh test1 sum` `bash tests/check.sh test2 sum` | awk -v sum=0 '{for (i=1;i<=NF;i++) {sum += $$i}} END {if (sum == 0) {print "PASSED"; exit 0} else {print "NOT PASSED: " err " ERRORS" ;exit 1;}}'
