@@ -10,8 +10,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: make all
-      run: make all
+    - uses: actions/checkout@v2
+    - name: make
+      run: make
     - name: make tests
       run: make test1 test2
     - name: make check
