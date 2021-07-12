@@ -183,6 +183,11 @@ int appendToFile(Storage_t *storage, int fd, char *filename, size_t size, void *
     return 0;   
 }
 
+/**
+ * @brief Open (or create) a file for a client (fd)
+ * 
+ * @return 0 on success
+ */
 int openFile(Storage_t *storage, int fd, char create, char* filename) {
     RET_ON(storage, NULL, -1);
     StorageNode_t *node = findFile(storage, filename);
@@ -224,6 +229,11 @@ int openFile(Storage_t *storage, int fd, char create, char* filename) {
     return 0;
 }
 
+/**
+ * @brief Close a file for a client (fd)
+ * 
+ * @return 0 on success
+ */
 int closeFile(Storage_t *storage, int fd, char* filename) {
     RET_ON(storage, NULL, -1);
     StorageNode_t *node = findFile(storage, filename);
@@ -232,6 +242,11 @@ int closeFile(Storage_t *storage, int fd, char* filename) {
     return 0;
 }
 
+/**
+ * @brief Read filename from storage and return it's data
+ * 
+ * @return 0 on success
+ */
 int readFile(Storage_t *storage, int fd, char *filename, size_t *size, void **data) {
     RET_ON(storage, NULL, -1);
     StorageNode_t *node = findFile(storage, filename);
@@ -244,6 +259,11 @@ int readFile(Storage_t *storage, int fd, char *filename, size_t *size, void **da
     return 0;
 }
 
+/**
+ * @brief Read the i-th file saved on the storage and return it's data and filename
+ * 
+ * @return int 
+ */
 int readIthFile(Storage_t *storage, int index, size_t *size, void **data, char **pathname) {
     RET_ON(storage, NULL, -1);
     if(index >= storage->length) return ENODATA;
@@ -260,6 +280,13 @@ int readIthFile(Storage_t *storage, int index, size_t *size, void **data, char *
     return 0;
 }
 
+/**
+ * @brief Close all files for a client (fd)
+ * 
+ * @param storage 
+ * @param fd 
+ * @return int 
+ */
 int closeAllFiles(Storage_t *storage, int fd) {
     RET_ON(storage, NULL, -1);
     StorageNode_t *node = storage->head;
@@ -270,6 +297,11 @@ int closeAllFiles(Storage_t *storage, int fd) {
     return 0;
 }
 
+/**
+ * @brief Destroy a storage node entity
+ * 
+ * @return 0 on success, -1 on error
+ */
 int StorageNodeDestroy(StorageNode_t *node) {
     RET_ON(qFree(node->clients), -1, -1);
     free(node->filename);
@@ -279,6 +311,11 @@ int StorageNodeDestroy(StorageNode_t *node) {
     return 0;
 }
 
+/**
+ * @brief Destroy a storage entity
+ * 
+ * @return 0 on success, -1 on error
+ */
 int StorageDestroy(Storage_t *storage) {
     StorageNode_t *node = storage->head;
     StorageNode_t *next;

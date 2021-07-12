@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
-
 #include "worker.h"
 #include "utils.h"
 #include "const.h"
@@ -73,7 +72,7 @@ int execute(int fd, Storage_t *storage) {
         case 'a': { // Append to file
             RET_ON(readUntil(fd, buf, BUF_MAX - 1, ' '), -1, -1);
             size_t size;
-            RET_ON(getSz(buf, &size), -1, -1);
+            RET_ON(getSz(buf, &size), EINVAL, -1);
             RET_ON(readUntil(fd, buf, BUF_MAX - 1, '\0'), -1, -1);
             int status = 0;
             if(size > 0) {
@@ -103,7 +102,7 @@ void *runWorker(void *args) {
     while(1) {
         int fd;
         EXT_ON_PT((fd = qPop(wa->queue)), -1);
-        if(wa->cc->closeAll) break;
+        if(wa->cc->closeAll) break; 
         int status = execute(fd, wa->storage);
         if(status == -2) { // Client-side connection close
             close(fd);

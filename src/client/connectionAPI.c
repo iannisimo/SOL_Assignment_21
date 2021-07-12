@@ -50,7 +50,7 @@ int waitResponse(size_t *size, void **buf, char *pathname) {
     RET_ON((token = strtok(NULL, " ")), NULL, status);
     API_ERR(size, NULL, EINVAL);
     API_ERR((getSZ(token, size)), -1, -1);
-    token = strtok(NULL, " ");
+    token = strtok(NULL, "\0");
     if(token != NULL) {
         API_ERR(pathname, NULL, EINVAL);
         strncpy(pathname, token, PATH_MAX);
@@ -130,7 +130,8 @@ int openFile(const char *pathname, int flags) {
     free(buf);
     int status;
     API_ERR((status = waitResponse(NULL, NULL, NULL)), -1, -1);
-    return status;
+    errno = status;
+    return status == 0 ? 0 : -1;
 }
 
 /**
@@ -147,7 +148,8 @@ int readFile(const char *pathname, void **buf, size_t* size) {
     free(tmpBuf);
     int status;
     API_ERR((status = waitResponse(size, buf, NULL)), -1, -1);
-    return status;
+    errno = status;
+    return status == 0 ? 0 : -1;
 }
 
 /**
@@ -169,16 +171,24 @@ int readNFiles(int N, const char *dirname) {
         snprintf(relRcv, PATH_MAX, "%s", dirname);
         API_ERR(getAbsPath(relRcv, absRcv), -1, -1);
     }
+    size_t received = 0;
     while((status = waitResponse(&size, &data, pathname)) == 0) {
+        received += 1;
         if(dirname != NULL) {
-            API_ERR(writeToFolder(pathname, absRcv, data, size), -1, -1);
+            if(writeToFolder(pathname, absRcv, data, size) == -1) {
+                free(data);
+                continue;
+            }
+            // API_ERR(writeToFolder(pathname, absRcv, data, size), -1, -1);
         } else {
             debugf("\nfilename:\n%s\ndata:\n%s\n", pathname, (char *) data);
         }
+        free(data);
     }
     RET_ON(status, -1, -1);
-    RET_ON(status, ENODATA, 0);
-    return status;
+    RET_ON(status, ENODATA, received);
+    errno = status;
+    return -1;
 }
 
 int writeFile(const char *pathname, const char *dirname) {
@@ -205,7 +215,8 @@ int appendToFile(const char *pathname, void *buf, size_t size, const char *dirna
     free(tmpBuf);
     int status;
     API_ERR((status = waitResponse(NULL, NULL, NULL)), -1, -1);
-    return status;
+    errno = status;
+    return status == 0 ? 0 : -1;
 }
 
 int lockFile(const char *pathname) {
@@ -236,7 +247,8 @@ int closeFile(const char *pathname) {
     free(buf);
     int status;
     API_ERR((status = waitResponse(NULL, NULL, NULL)), -1, -1);
-    return status;
+    errno = status;
+    return status == 0 ? 0 : -1;
 }
 
 int removeFile(const char *pathname) {

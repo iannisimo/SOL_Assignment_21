@@ -23,5 +23,6 @@ typedef struct _task {
 
 SingleArgs_t parseSingleArgs(int argc, char** argv);
 Task_t getNext(int argc, char** argv);
+void freeTask(Task_t t);
 
 #endif

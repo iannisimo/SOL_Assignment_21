@@ -22,6 +22,12 @@
     } \
 }
 
+#define RET_ERRNO(f) { \
+    if(f != 0) { \
+        return errno == 0 ? -1 : errno; \
+    } \
+}
+
 #define IS_HELP(f) \
     (f & O_HELP)
 
@@ -29,6 +35,7 @@
     ((f & O_PRINT) >> 1)
 
 void setDebug(char dgb);
+void print_void(void* buf, size_t len);
 int strncnt(char *str, char elem, int max);
 int millisleep(int millis);
 char getNumber(char* str, int* val);

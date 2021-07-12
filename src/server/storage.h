@@ -21,15 +21,15 @@ typedef struct _storage_summary {
 } StorageSummary_t;
 
 typedef struct _storage {
-    struct _storage_node *head; // Pointer to the head of the list
-    struct _storage_node *tail; // Pointer to the tail of the list
+    struct _storage_node *head;
+    struct _storage_node *tail;
     size_t max_length;
     size_t max_size;
-    size_t length;              // Number of files currently saved
-    size_t size;                // Cumulative size of the files
-    pthread_mutex_t read_mtx;      
+    size_t length;
+    size_t size;
+    pthread_mutex_t read_mtx;
     pthread_cond_t read_cond;
-    pthread_mutex_t write_mtx;      
+    pthread_mutex_t write_mtx;
     pthread_cond_t write_cond;
     size_t readers;
     size_t writers;
@@ -38,13 +38,13 @@ typedef struct _storage {
 } Storage_t;
 
 typedef struct _storage_node {
-    struct _storage_node *prev; // Previous node in the list
-    struct _storage_node *next; // Next node in the list
-    char *filename;             // Absolute path of the file
-    void *data;                 // Pointer to the bytearray containing the file data
-    size_t size;                // Size of `data`
-    Queue_t *clients;           // File descriptors of the clients who opened the file
-    pthread_mutex_t mutex;      // Mutex user do block certain operations for multithread concurrency
+    struct _storage_node *prev;
+    struct _storage_node *next;
+    char *filename;
+    void *data;
+    size_t size;
+    Queue_t *clients;
+    pthread_mutex_t mutex;
 } StorageNode_t;
 
 Storage_t *initStorage(size_t max_len, size_t max_size);

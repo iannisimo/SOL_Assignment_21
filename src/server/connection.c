@@ -18,12 +18,18 @@ void *runMaster(void *args) {
     fd_set set;
     fd_set rdset;
     int fd_num = 0;
+
+    // Bind and listen to the socket
+
     struct sockaddr_un sa;
     strncpy(sa.sun_path, ma->sockname, UNIX_PATH_MAX-1);
     sa.sun_family = AF_UNIX;
     RET_ON((sfd = socket(AF_UNIX, SOCK_STREAM, 0)), -1, NULL);
     RET_ON((bind(sfd, (struct sockaddr *) &sa, sizeof(sa))), -1, NULL);
     RET_ON((listen(sfd, SOMAXCONN)), -1, NULL);
+
+    // configuration of select()'s sets
+
     if(sfd > fd_num) fd_num = sfd;
     if(ma->fd_pipe > fd_num) fd_num = ma->fd_pipe;
     if(ma->exit_pipe > fd_num) fd_num = ma->exit_pipe;
@@ -33,6 +39,9 @@ void *runMaster(void *args) {
     FD_SET(ma->exit_pipe, &set);
 
     size_t connected_clients = 0;
+
+    // Exits when it's asked to close everything immediately or if no client is connected and it cannot accept any more connections
+
     while(!ma->cc->closeAll && (ma->cc->acceptConns || connected_clients > 0)) {    
         rdset = set;
         if(select(fd_num+1, &rdset, NULL, NULL, NULL) == -1) {

@@ -21,6 +21,11 @@
 #include "queue.h"
 #include "storage.h"
 
+/**
+ * @brief Waits for a masked signal to be called and executes the handler
+ * 
+ * @return 0 on success, -1 on error 
+ */
 int sig_loop(sigset_t sig_mask, int exit_pipe, Queue_t *queue, closeConditions_t *cc) {
     int sig;
     while(1) {
@@ -48,11 +53,11 @@ int main(int argc, char **argv) {
     RET_NO(parseConfig(argv[1], &config), 0);
     parseConfig(argv[1], &config);
 
-    // EXT_ON(unlink(config.sockname), -1);
-
     closeConditions_t cc = {.acceptConns = 1, .closeAll = 0};
 
     printf("Starting setup sequence\n");
+
+    // Masking signals
 
     sigset_t sig_mask;
     sigemptyset(&sig_mask);
@@ -96,59 +101,18 @@ int main(int argc, char **argv) {
     sig_loop(sig_mask, exit_pipes[1], fdq, &cc);
 
     EXT_PT(pthread_join(master_tid, NULL));
+    // If the masted (dispatcher) terminates, every worker gets shutdown
     cc.closeAll = 1;
     RET_ON(qWakeAll(fdq), -1, -1);
     for(int i = 0; i < config.n_workers; i++) {
         EXT_PT(pthread_join((worker_tids[i]), NULL));
     }
     printSummary(storage);
+
+    // Cleanup
+
     free(worker_tids);
     RET_ON(qFree(fdq), -1, -1);
     RET_ON(StorageDestroy(storage), -1, -1);
     return 0;
-
-    // int sfd;
-    // fd_set set;
-    // fd_set rdset;
-    // int fd_num = 0;
-    // struct sockaddr_un sa;
-    // strncpy(sa.sun_path, config.sockname, UNIX_PATH_MAX);
-    // sa.sun_family = AF_UNIX;
-    // RET_ON((sfd = socket(AF_UNIX, SOCK_STREAM, 0)), -1, -1);
-    // RET_ON((bind(sfd, (struct sockaddr *) &sa, sizeof(sa))), -1, -1);
-    // RET_ON((listen(sfd, SOMAXCONN)), -1, -1);
-    // if(sfd > fd_num) fd_num = sfd;
-    // if(pfd[0] > fd_num) fd_num = pfd[0];
-    // FD_ZERO(&set);
-    // FD_SET(sfd, &set);
-    // FD_SET(pfd[0], &set);
-
-
-    // while(!doExit) {    
-    //     rdset = set;
-    //     if(select(fd_num+1, &rdset, NULL, NULL, NULL) == -1) {
-    //         perror("Select error");
-    //         continue;
-    //     }
-    //     for(int fd = 0; fd <= fd_num; fd++) {
-    //         // printf("FD\tRD\tEX\n%d\t%d\t%d\n", fd, FD_ISSET(fd, &rdset), FD_ISSET(fd, &exset));
-    //         if(FD_ISSET(fd, &rdset)) {
-    //             if(fd == pfd[0]) {
-    //                 int new_fd;
-    //                 RET_ON((read(pfd[0], &new_fd, sizeof(int))), -1, -1);
-    //                 FD_SET(new_fd, &set);
-    //                 if(new_fd > fd_num) fd_num = new_fd;
-    //             }
-    //             else if(fd == sfd) {
-    //                 int new_fd = accept(sfd, NULL, 0);
-    //                 FD_SET(new_fd, &set);
-    //                 if(new_fd > fd_num) fd_num = new_fd;
-    //             } else {
-    //                 FD_CLR(fd, &set);
-    //                 RET_ON((qPush(fdq, fd)), -1, 98439); // Change this
-    //             }
-    //         }
-    //     }
-    // }
-    // return 0;
 }

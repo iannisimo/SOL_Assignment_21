@@ -23,18 +23,22 @@ int readTask(char *filename, char *absRcv) {
     void *data;
     size_t size;
     RET_ON(getAbsPath(filename, absPath), -1, -1);
-    RET_NO(openFile(absPath, 0), 0);
-    RET_ON((status = readFile(absPath, &data, &size)), -1, -1);
-    RET_NO(closeFile(absPath), 0);
+    RET_ERRNO(openFile(absPath, 0));
+    status = readFile(absPath, &data, &size);
+    if(closeFile(absPath) != 0) {
+        free(data);
+        return errno;
+    }
     if(status == 0) {
         if(absRcv != NULL) {
-            RET_ON(writeToFolder(absPath, absRcv, data, size), -1, -1);
+            if(writeToFolder(absPath, absRcv, data, size) == -1) {
+                free(data);
+                return -1;
+            }
         } else {
-            debugf("\nfilename:\n%s\ndata:\n%s\n", filename, (char *) data);
+            debugf("\nfilename:\n%s\ndata:\n", filename);
+            print_void(data, size);
         }
-    }
-    if(absRcv != NULL && status == 0) {
-        RET_ON(writeToFolder(absPath, absRcv, data, size), -1, -1);
     }
     free(data);
     return status;
@@ -51,14 +55,25 @@ int writeTask(char *filepath) {
     int status;
     char absPath[PATH_MAX];
     RET_NO(getFileBytes(filepath, absPath, &data, &size), 0);
-    RET_ON((status = openFile(absPath, O_CREATE)), -1, -1);
-    if(status == EEXIST) {
-        RET_ON((status = openFile(absPath, 0)), -1, -1);
+    errno = 0;
+    if((status = openFile(absPath, O_CREATE)) == -1 && errno == EEXIST) {
+        status = openFile(absPath, 0);
     }
-    RET_NO(status, 0);
-    if(size > 0) RET_ON((status = appendToFile(absPath, data, size, NULL)), -1, -1);
-    RET_NO(closeFile(absPath), 0);
-    return status;
+    if(status != 0) {
+        free(data);
+        return errno != 0 ? errno : -1;
+    }
+    int appendStatus = 0;
+    if(size > 0) {
+        status = appendToFile(absPath, data, size, NULL);
+        appendStatus = errno;
+    }
+    free(data);
+    RET_ERRNO(closeFile(absPath));
+    if(status == -1) {
+        return appendStatus;
+    }
+    return 0;
 }
 
 /**
@@ -67,6 +82,7 @@ int writeTask(char *filepath) {
  * @return The status code from the server, -1 on error
  */
 int treeWalkWrite(char *dirpath, int dirlen, int *N) {
+    int ret = 0;
     if(dirlen >= PATH_MAX-1) return -1;
     struct dirent *ent;
     DIR *d = opendir(dirpath);
@@ -74,18 +90,27 @@ int treeWalkWrite(char *dirpath, int dirlen, int *N) {
     if(d == NULL) return -1;
     dirpath[dirlen++] = '/';
     while ((ent = readdir(d)) != NULL) {
-        if(*N == 0) return 0;
+        if(*N == 0) break;
         dirpath[dirlen] = '\0';
         int entlen = strlen(ent->d_name);
         if(ent->d_name[entlen-1] == '.') continue;
         memcpy(dirpath + dirlen, ent->d_name, entlen);
         dirpath[dirlen + entlen] = '\0';
-        RET_ON(stat(dirpath, &st), -1, -1);
+        if(stat(dirpath, &st) == -1) {
+            ret = -1;
+            break;
+        }
         if(S_ISDIR(st.st_mode)) {
-            RET_ON(treeWalkWrite(dirpath, dirlen + entlen, N), -1, -1);
+            if(treeWalkWrite(dirpath, dirlen + entlen, N) == -1) {
+                ret = -1;
+                break;
+            }
         } else {
             int status;
-            RET_ON((status = writeTask(dirpath)), -1, -1);
+            if((status = writeTask(dirpath)) == -1) {
+                ret = -1;
+                break;
+            }
             if(status != 0) {
                 debugf("Error sending %s to the server: %s(%d)\n", dirpath, strerror(status), status);
                 if(status == ENOENT) debugf("The file might have been deleted by the server to clear space\n");
@@ -95,7 +120,7 @@ int treeWalkWrite(char *dirpath, int dirlen, int *N) {
     }
     closedir(d);
     dirpath[--dirlen] = '\0';
-    return 0;
+    return ret;
 }
 
 /**
@@ -127,9 +152,12 @@ int execute(Task_t task) {
                 debugf("\nRequesting %d random file%s from the server\n", task.n, task.n == 1 ? "" : "s");
             else
                 debugf("\nRequesting all files from the server\n");
-            RET_ON((status = readNFiles(task.n, task.receive_folder)), -1, -1);
-            if(status != 0) {
-                debugf("Failed with error: %s\n", strerror(status));
+            status = readNFiles(task.n, task.receive_folder);
+            if(status == -1) {
+                debugf("Failed with error: %s\n", strerror(errno));
+            } else {
+                debugf("Operation completed, got %d file%s", status, status == 1 ? "" : "s");
+                return 0;
             }
             break;
         }
@@ -183,8 +211,9 @@ int main(int argc, char **argv) {
     Task_t nextTask;
     while((nextTask = getNext(argc, argv)).type != 0) {
         int status = execute(nextTask);
+        freeTask(nextTask);
         if(status == -1) {
-            debugf("Something went very wrong, exiting...\n");
+            debugf("Something went wrong, exiting...\n");
             break;
         }
     }

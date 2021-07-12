@@ -143,3 +143,17 @@ Task_t getNext(int argc, char** argv) {
     }
     return task;
 }
+
+void freeTask(Task_t t) {
+    if(t.receive_folder != NULL)
+        free(t.receive_folder);
+    if(t.send_args != NULL) {
+        if(t.send_args[0] != NULL)
+            free(t.send_args[0]);
+        for(int i = 1; i < t.n; i++) {
+            if(t.type == 'w') break;
+            free(t.send_args[i]);
+        }
+        free(t.send_args);
+    }
+}

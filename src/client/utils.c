@@ -14,6 +14,16 @@
 
 static char debugPrint = 0;
 
+/**
+ * @brief Print a void* as a string of length len
+ */
+void print_void(void* buf, size_t len) {
+    for(int i = 0; i < len; i++) {
+        debugf("%c", ((char *) buf)[i]);
+    }
+    debugf("\n");
+}
+
 int millisleep(int millis) {
     struct timespec nssleep;
     nssleep.tv_sec = ((long) millis) / 1000l;
@@ -27,6 +37,11 @@ void setDebug(char dgb) {
     debugPrint = dgb;
 }
 
+/**
+ * @brief Convert a string to an int value 
+ * 
+ * @return 0 on success, -1 on error
+ */
 char getNumber(char* str, int* val) {
     char* endptr = NULL;
     errno = 0;
@@ -38,6 +53,11 @@ char getNumber(char* str, int* val) {
     return 0;
 }
 
+/**
+ * @brief Convert a string to a size_t value 
+ * 
+ * @return 0 on success, -1 on error
+ */
 int getSZ(char* str, size_t* val) {
     char* endptr = NULL;
     errno = 0;
@@ -67,6 +87,11 @@ int strncnt(char *str, char elem, int max) {
     return count;
 }
 
+/**
+ * @brief Same as printf but prints iif (global) debugPrint == 1
+ * 
+ * @return Upon successful this function returns the number of characters printed (excluding the null byte used to end output to strings)
+ */
 int debugf(const char *fmt, ...) {
     if(debugPrint == 0) return 0;
     va_list args;
@@ -104,6 +129,11 @@ int mkdir_p(char *path) {
     return 0;
 }
 
+/**
+ * @brief Create a file in /dirname/filename and populate it with data
+ * 
+ * @return 0 on success, -1 on error
+ */
 int writeToFolder(char *filename, char *dirname, void *data, size_t size) {
     size_t filelen = strnlen(filename, PATH_MAX);
     size_t pathlen = strnlen(dirname, PATH_MAX);
@@ -122,9 +152,14 @@ int writeToFolder(char *filename, char *dirname, void *data, size_t size) {
     return 0;
 }
 
+/**
+ * @brief Read the file in pathname and return it's data, size, and absolute path
+ * 
+ * @return 0 on success, -1 on error
+ */
 int getFileBytes(char *pathname, char *absPath, void **buf, size_t *size) {
     int fd;
-    RET_ON((fd = open(pathname, O_RDONLY)), -1, -1);
+    RET_ON((fd = open(pathname, O_RDONLY)), -1, errno);
     struct stat st;
     RET_ON(fstat(fd, &st), -1, errno);
     *size = st.st_size;
@@ -135,6 +170,11 @@ int getFileBytes(char *pathname, char *absPath, void **buf, size_t *size) {
     return 0;
 }
 
+/**
+ * @brief Get the absolute path of relPath; if relPath doesn't exist [absPath = <cwd>/<relPath>]
+ * 
+ * @return 0 on success, -1 on error
+ */
 int getAbsPath(char *relPath, char *absPath) {
     char *tmp = realpath(relPath, absPath);
     if(tmp != NULL) return 0;
