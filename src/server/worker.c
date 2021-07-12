@@ -112,6 +112,7 @@ void *runWorker(void *args) {
             continue;
         }
         if(status == -1) { // Error during execution
+            printf("Something went wrong, exiting...\n");
             EXT_ON_PT(close(wa->exit_pipe), -1);
             break;
         }

@@ -111,9 +111,10 @@ int treeWalkWrite(char *dirpath, int dirlen, int *N) {
                 ret = -1;
                 break;
             }
-            if(status != 0) {
-                debugf("Error sending %s to the server: %s(%d)\n", dirpath, strerror(status), status);
-                if(status == ENOENT) debugf("The file might have been deleted by the server to clear space\n");
+            if(status == EFBIG) {
+                debugf("Warning: the server has refused <%s> because is too big\n", dirpath);
+            } else if(status != 0){
+                debugf("Warning: could not write <%s> to the server because: %s", dirpath, strerror(status));
             }
             if(*N != -1) *N -= 1;
         }
@@ -142,9 +143,11 @@ int execute(Task_t task) {
                 debugf("Requesting file %s\n", task.send_args[i]);
                 RET_ON((status = readTask(task.send_args[i], task.receive_folder == NULL ? NULL : absRcv)), -1, -1);
                 if(status != 0) {
-                    debugf("Failed with error: %s\n", strerror(status));
+                    debugf("Warning: could not complete request: %s\n", strerror(errno));
                 }
             }
+            debugf("Operation completed\n");
+            status = -2;
             break;
         }
         case 'R': {
@@ -154,21 +157,23 @@ int execute(Task_t task) {
                 debugf("\nRequesting all files from the server\n");
             status = readNFiles(task.n, task.receive_folder);
             if(status == -1) {
-                debugf("Failed with error: %s\n", strerror(errno));
+                debugf("Warning: could not complete request: %s\n", strerror(errno));
             } else {
                 debugf("Operation completed, got %d file%s", status, status == 1 ? "" : "s");
                 return 0;
             }
+            status = -2;
             break;
         }
         case 'W': {
             debugf("\nSending write requests for %d file%s\n", task.n, task.n == 1 ? "" : "s");
             for(int i = 0; i < task.n; i++) {
 
-                debugf("Writing file %s\n", task.send_args[i]);
                 RET_ON((status = writeTask(task.send_args[i])), -1, -1);
-                if(status != 0) {
-                    debugf("Failed with error: %s\n", strerror(status));
+                if(status == EFBIG) {
+                    debugf("Warning: the server has refused <%s> because is too big\n", task.send_args[i]);
+                } else if(status != 0){
+                    debugf("Warning: could not write <%s> to the server because: %s", task.send_args[i], strerror(status));
                 }
             }
             break;
