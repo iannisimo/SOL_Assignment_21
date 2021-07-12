@@ -29,8 +29,6 @@ test1:
 	@bash tests/wait `cat tests/output/test1/server.PID`
 	@rm tests/output/test1/server.PID
 	@echo Done
-	@#echo Total errors: `awk -F'SUMMARY: |errors' '/ERROR SUMMARY/{print $$2}' tests/output/test1/valgrind.log`
-	@#echo Heap usage at exit: `awk -F': ' '/in use at exit/{print $$2}' tests/output/test1/valgrind.log`
 	@bash tests/check.sh test1
 
 test2:
@@ -46,8 +44,6 @@ test2:
 	@bash tests/wait `cat tests/output/test2/server.PID`
 	@rm tests/output/test2/server.PID
 	@echo Done
-	@#echo Total errors: `awk -F'SUMMARY: |errors' '/ERROR SUMMARY/{print $$2}' tests/output/test2/valgrind.log`
-	@#echo Heap usage at exit: `awk -F': ' '/in use at exit/{print $$2}' tests/output/test2/valgrind.log`
 	@bash tests/check.sh test2
 
 check:
