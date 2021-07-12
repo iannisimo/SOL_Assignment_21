@@ -10,8 +10,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: make
-      run: make
+    - name: make all
+      run: make all
     - name: make tests
       run: make test1 test2
     - name: make check
