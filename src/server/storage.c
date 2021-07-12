@@ -262,7 +262,7 @@ int readFile(Storage_t *storage, int fd, char *filename, size_t *size, void **da
 /**
  * @brief Read the i-th file saved on the storage and return it's data and filename
  * 
- * @return int 
+ * @return 0 on success 
  */
 int readIthFile(Storage_t *storage, int index, size_t *size, void **data, char **pathname) {
     RET_ON(storage, NULL, -1);
@@ -283,9 +283,7 @@ int readIthFile(Storage_t *storage, int index, size_t *size, void **data, char *
 /**
  * @brief Close all files for a client (fd)
  * 
- * @param storage 
- * @param fd 
- * @return int 
+ * @return 0 on success 
  */
 int closeAllFiles(Storage_t *storage, int fd) {
     RET_ON(storage, NULL, -1);
