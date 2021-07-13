@@ -94,7 +94,7 @@ int parseLine(char *line, Config_t *config) {
     colon[0] = '\0';
     char *val = colon + 1;
     RET_NO((skipWS(&val)), 0);
-           if(strcmp(line, "N_WORKERS") == 0) {
+    if(strcmp(line, "N_WORKERS") == 0) {
         RET_ON((getInt(val, &config->n_workers)), EINVAL, EINVAL);
     } else if(strcmp(line, "MAX_SIZE") == 0) {
         RET_NO((parseSize(val, &config->max_size)), 0);
