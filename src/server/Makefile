@@ -1,5 +1,5 @@
 CC		      =  gcc
-CFLAGS	      += -Wall -pedantic -std=gnu11
+CFLAGS	      += -Wall -pedantic -std=gnu11 -MD
 TARGETS	      = users matrix wc 
 OPTFLAGS	  = -g -O3 
 LIBS		  = -lpthread
@@ -9,22 +9,23 @@ EXE           = ../../exe/
 
 BIN           = $(EXE)server
 
-WITHHEADER   := utils.o config.o worker.o queue.o storage.o connection.o
-OBJECTS      := $(WITHHEADER) server.o
-HEADERS      := $(addsuffix .h,$(basename $(WITHHEADER)))
+OBJECTS      := utils.o config.o worker.o queue.o storage.o connection.o server.o
+OBJECTS      := $(addprefix $(BUILD),$(OBJECTS))
 
 .PHONY: clean all
 .SUFFIXES: .c .h
 
-all: prepbuild $(addprefix $(BUILD),$(OBJECTS)) $(HEADERS)
-	$(CC) $(addprefix $(BUILD),$(OBJECTS)) $(CFLAGS) $(OPTFLAGS) $(LIBS) -o $(BIN)
+all: prepbuild $(OBJECTS)
+	$(CC) $(OBJECTS) $(CFLAGS) $(OPTFLAGS) $(LIBS) -o $(BIN)
 
 prepbuild:
 	@mkdir -p $(EXE)
 	@mkdir -p $(BUILD)
 
-$(addprefix $(BUILD),%.o): %.c
+$(BUILD)%.o: %.c
 	$(CC) $(CFLAGS) $(OPTFLAGS) -c $(LIBS) $< -o $@
 
 clean :
-	-rm -rf $(addprefix $(BUILD),$(OBJECTS)) $(BIN)
+	-rm -rf $(OBJECTS) $(BIN)
+
+-include $(OBJECTS:.o=.d)

@@ -1,5 +1,5 @@
 CC		      =  gcc
-CFLAGS	     += -Wall -pedantic -std=gnu11
+CFLAGS	     += -Wall -pedantic -std=gnu11 -MD
 TARGETS	      = users matrix wc 
 OPTFLAGS	  = -g -O3
 
@@ -11,34 +11,29 @@ EXE           = ../../exe/
 
 BIN           = $(EXE)client
 
-
 LIBS         := connectionAPI.a
-WITHHEADER   := utils.o argparse.o
-OBJECTS      := $(WITHHEADER) client.o
-HEADERS      := $(addsuffix .h,$(basename $(WITHHEADER) $(LIBS)))
+LIBS         := $(addprefix $(BUILD), $(LIBS))
+OBJECTS      := utils.o argparse.o client.o
+OBJECTS      := $(addprefix $(BUILD), $(OBJECTS))
 
 .PHONY: prepbuild clean all
 .SUFFIXES: .c .h
 
-all: prepbuild $(addprefix $(BUILD),$(OBJECTS) $(LIBS)) $(HEADERS)
-	$(CC) $(addprefix $(BUILD),$(OBJECTS) $(LIBS)) $(CFLAGS) $(OPTFLAGS) -o $(BIN)
+all: prepbuild $(OBJECTS) $(LIBS)
+	$(CC) $(OBJECTS) $(LIBS) $(CFLAGS) $(OPTFLAGS) -o $(BIN)
 
 prepbuild:
 	@mkdir -p $(EXE)
 	@mkdir -p $(BUILD)
 
-$(addprefix $(BUILD),%.a): $(addprefix $(BUILD),%.o)
+$(BUILD)%.a: $(BUILD)%.o
 	$(AR) $(ARFLAGS) $@ $<
 
-$(addprefix $(BUILD),%.o): %.c
+$(BUILD)%.o: %.c
 	$(CC) $(CFLAGS) $(OPTFLAGS) -c $< -o $@
-
-%.a: %.o
-	$(AR) $(ARFLAGS) $@ $<
-
-%.o: %.c
-	$(CC) $(CFLAGS) $(OPTFLAGS) -c $< -o $@
-
 
 clean : 
-	-rm -rf $(addprefix $(BUILD),$(OBJECTS) $(LIBS)) $(BIN)
+	-rm -rf $(OBJECTS) $(LIBS) $(BIN)
+
+-include $(OBJECTS:.o=.d)
+-include $(LIBS:.a=.d)
